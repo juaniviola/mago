@@ -1,0 +1,2 @@
+# mago
+Card mago game.
