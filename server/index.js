@@ -10,7 +10,8 @@ const db = require('./db')
 
 const localStrategy = require('passport-local').Strategy
 
-const sessionOptions = { keys: [ process.env.KEY_SESSION ] }
+const key = process.env.KEY_SESSION || 'secretaso'
+const sessionOptions = { keys: [ key ] }
 
 // sv config
 app.use(cors())
@@ -66,3 +67,5 @@ app.post('/signup', async (req, res) => {
     res.status(500).json({ message: 'Error ocurred', error: true })
   }
 })
+
+app.listen(process.env.PORT || 8001, () => console.log('running...'))
