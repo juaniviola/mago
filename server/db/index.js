@@ -1,3 +1,5 @@
+'use strict'
+
 const { modelUrl } = require('./setup')
 const bcrypt = require('bcrypt')
 
