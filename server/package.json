@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "backend for mago app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juaniviola/mago.git"
+  },
+  "author": "Juani Viola <https://www.instagram.com/juaniviola>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/juaniviola/mago/issues"
+  },
+  "homepage": "https://github.com/juaniviola/mago#readme",
+  "dependencies": {
+    "bcrypt": "^4.0.1",
+    "cookie-session": "^1.4.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
+    "sequelize": "^5.21.5"
+  }
+}
