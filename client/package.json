@@ -1,0 +1,29 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "frontend for mago app",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juaniviola/mago.git"
+  },
+  "author": "Juani Viola <https://www.instagram.com/juaniviola>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/juaniviola/mago/issues"
+  },
+  "homepage": "https://github.com/juaniviola/mago#readme",
+  "dependencies": {
+    "bootstrap": "^4.4.1",
+    "fetch": "^1.1.0",
+    "next": "^9.3.4",
+    "react": "^16.13.1",
+    "react-bootstrap": "^1.0.0",
+    "react-dom": "^16.13.1"
+  }
+}
