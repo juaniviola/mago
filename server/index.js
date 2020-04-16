@@ -15,7 +15,7 @@ app.post('/login', async (req, res) => {
   const { username, roomId, password } = req.body
 
   try {
-    const login = await db.loginRoom({ username, roomId, password})
+    const login = await db.loginRoom({ username, roomId, password })
     if (!login.error) {
       return res.status(200).json({ message: 'connected', users: login.users })
     }

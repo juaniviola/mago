@@ -2,7 +2,7 @@
 
 const redis = require('redis')
 const shortid = require('shortid')
-const { promisify } = require("util")
+const { promisify } = require('util')
 
 const client = redis.createClient()
 client.on('error', error => console.error(error))
@@ -72,5 +72,5 @@ module.exports = {
     } catch (error) {
       return { error }
     }
-  },
+  }
 }
