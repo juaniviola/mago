@@ -9,7 +9,7 @@ export default class Index extends React.Component {
     return (
       <Layout title="Mago, un juego de cartas para toda la familia!">
         <div>
-          <h3 style={{ marginTop: '20px', textAlign: 'center' }}>🃏 Juego del Mago 🃏</h3>
+          <h3 style={{ marginTop: '20px', textAlign: 'center' }}>🃏 Juego del Mago 🃏 (beta)</h3>
         </div>
         <div style={{ 'marginTop': '20px' }}>
           <img style={{ margin: '0 auto', display: 'block' }} src='/cards.jpg' alt='card' width="250px" />

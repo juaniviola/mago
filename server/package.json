@@ -22,9 +22,11 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "helmet": "^3.22.0",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.9",
     "redis": "^3.0.2",
-    "shortid": "^2.2.15"
+    "shortid": "^2.2.15",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "standard": "^14.3.3"
