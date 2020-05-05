@@ -9,7 +9,6 @@ export default class Login extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      username: '',
       room: '',
       password: '',
       visible: false,
@@ -24,10 +23,10 @@ export default class Login extends React.Component {
     this.handleError = this.handleError.bind(this)
   }
 
-  handleError () {
+  handleError (message = 'Ha ocurrido un error') {
     this.setState({
       visible: true,
-      message: 'Ha ocurrido un error',
+      message,
       variant: 'danger'
     })
   }
@@ -36,13 +35,16 @@ export default class Login extends React.Component {
     try {
       event.preventDefault()
 
+      if (this.state.password === '') {
+        return this.handleError('Escribe una contrasenia')
+      }
+
       const options = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: this.state.username,
           password: this.state.password,
           roomId: this.state.room
         })
@@ -53,8 +55,8 @@ export default class Login extends React.Component {
 
       if (data.error) return this.handleError()
 
-      localStorage.setItem('username', this.state.username)
       localStorage.setItem('roomId', this.state.room)
+      localStorage.setItem('token', data.token)
       Router.push(`/game/${this.state.room}`)
     } catch (err) {
       this.handleError()
@@ -65,13 +67,16 @@ export default class Login extends React.Component {
     try {
       event.preventDefault()
 
+      if (this.state.password === '') {
+        return this.handleError('Escribe una contrasenia')
+      }
+
       const options = {
-        method: 'post',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          username: this.state.username,
           password: this.state.password
         })
       }
@@ -81,8 +86,8 @@ export default class Login extends React.Component {
 
       if (data.error) return this.handleError()
 
-      localStorage.setItem('username', this.state.username)
       localStorage.setItem('roomId', data.roomId)
+      localStorage.setItem('token', data.token)
       Router.push(`/game/${data.roomId}`)
     } catch (err) {
       this.handleError()
@@ -105,14 +110,6 @@ export default class Login extends React.Component {
                 <Card.Body>
                   <Form>
                     {this.state.visible ? <Alert variant={this.state.variant}>{this.state.message}</Alert> : null}
-                    <Form.Group controlId="formBasicUsername">
-                      <Form.Label>Username</Form.Label>
-                      <Form.Control
-                        type="username"
-                        placeholder="Ingresar username"
-                        onChange={(el) => this.setState({ username: el.target.value }) }
-                      />
-                    </Form.Group>
 
                     <Form.Group controlId="formBasicRoom">
                       <Form.Label>Codigo de la mesa</Form.Label>
@@ -147,14 +144,6 @@ export default class Login extends React.Component {
                 <Card.Body>
                   <Form>
                     {this.state.visible2 ? <Alert variant={this.state.variant2}>{this.state.message2}</Alert> : null}
-                    <Form.Group controlId="formBasicUsername2">
-                      <Form.Label>Username</Form.Label>
-                      <Form.Control
-                        type="username"
-                        placeholder="Ingresar username"
-                        onChange={ (el) => this.setState({ username: el.target.value }) }
-                      />
-                    </Form.Group>
 
                     <Form.Group controlId="formBasicPasswordRepeatSignup">
                       <Form.Label>Contraseña</Form.Label>
