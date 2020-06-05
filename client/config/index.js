@@ -1,3 +1,3 @@
 export default {
-  server: 'http://192.168.0.107:8001'
+  server: 'http://45.7.241.90:8001'
 }

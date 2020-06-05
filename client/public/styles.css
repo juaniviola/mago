@@ -1,0 +1,8 @@
+.cards {
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.cards p {
+  display: inline-block;
+}

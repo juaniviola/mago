@@ -79,11 +79,18 @@ function listenRoom (room) {
       for (let i in _ids) {
         _io.to(_ids[i]).emit('card', { cards: rand.userCards[_users[i]], turn: 0 })
       }
-      _io.emit('mazo', { mazo: rand.cards, stack: rand.stack })
+
+      const stack = rand.stack[0].slice(0, rand.stack[0].indexOf('_'))
+      if (stack === '12' || stack === '7') {
+        _io.emit('mazo', { mazo: rand.cards, stack: rand.stack, cant: stack === '12' ? 2 : 1 })
+      } else {
+        _io.emit('mazo', { mazo: rand.cards, stack: rand.stack, cant: 0 })
+      }
     })
 
-    socket.on('play_card', ({ card, turn }) => socket.broadcast.emit('card_played', { card, turn }))
-    socket.on('take_card', i => socket.broadcast.emit('card_taked', i))
+    socket.on('play_card', ({ card, turn, cant }) => socket.broadcast.emit('card_played', { card, turn, cant }))
+    socket.on('take_card', obj => socket.broadcast.emit('card_taked', obj))
+    socket.on('change_palo', p => socket.broadcast.emit('palo_changed', p))
 
     socket.on('disconnect', async () => {
       try {

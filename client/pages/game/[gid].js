@@ -2,6 +2,7 @@ import React from 'react'
 import io from 'socket.io-client'
 import Layout from '../../components/layout'
 import config from '../../config'
+import utils from '../../utils'
 
 class Game extends React.Component {
   constructor (props) {
@@ -16,8 +17,10 @@ class Game extends React.Component {
       myTurn: false,
       cards: [],
       mazo: [],
-      stack: ['-']
+      stack: ['-'],
+      cant: 0
     }
+
     this.handleStart = this.handleStart.bind(this)
     this.handleSave = this.handleSave.bind(this)
     this.handlePlayCard = this.handlePlayCard.bind(this)
@@ -45,25 +48,48 @@ class Game extends React.Component {
     })
 
     socket.on('mazo', data => {
-      this.setState({ mazo: data.mazo, stack: data.stack, gameStarted: true })
+      this.setState({ mazo: data.mazo, stack: data.stack, gameStarted: true, cant: data.cant })
+      if (data.cant === 0) return
+
+      if (this.state.myTurn === true) {
+        const cantTake = utils.canTakeCard(this.state.stack[0], this.state.cards)
+        if (!cantTake) {
+          this.handleTakeCard(data.cant)
+        }
+      }
     })
 
-    socket.on('card_played', ({ card, turn }) => {
+    socket.on('card_played', ({ card, turn, cant }) => {
       const stack = this.state.stack
       stack.unshift(card)
-      this.setState({ stack })
+      this.setState({ stack, cant })
+
+      if (cant !== 0) {
+        const cantTake = utils.canTakeCard(this.state.stack[0], this.state.cards)
+        if (!cantTake) {
+          this.handleTakeCard(cant)
+          return
+        }
+      }
+
       if (this.state.users[turn] === this.state.username) {
         this.setState({ myTurn: true })
       }
     })
 
-    socket.on('card_taked', i => {
+    socket.on('card_taked', ({ turn, cant }) => {
       const mazo = this.state.mazo
-      mazo.splice(0, 1)
-      this.setState({ mazo })
-      if (this.state.users[i] === this.state.username) {
+      mazo.splice(0, cant)
+      this.setState({ mazo, myTurn: false, cant: 0 })
+      if (this.state.users[turn] === this.state.username) {
         this.setState({ myTurn: true })
       }
+    })
+
+    socket.on('palo_changed', p => {
+      const stack = this.state.stack
+      stack[0] = `10_${p}`
+      this.setState({ stack })
     })
 
     let user = ''
@@ -80,6 +106,11 @@ class Game extends React.Component {
   }
 
   handlePlayCard (card) {
+    const socket = this.state.socket
+    const cards = this.state.cards
+    const stack = this.state.stack
+
+    let i = this.state.users.indexOf(this.state.username)
     const c1 = card.slice(card.indexOf('_')+1, card.length)
     const c2 = this.state.stack[0].slice(this.state.stack[0].indexOf('_')+1, this.state.stack[0].length)
     const n1 = card.slice(0, card.indexOf('_'))
@@ -88,13 +119,39 @@ class Game extends React.Component {
       return alert('Jugada invalida!')
     }
 
-    const socket = this.state.socket
-    const cards = this.state.cards
-    const stack = this.state.stack
+    let cant = this.state.cant
+    if (cant !== 0) {
+      if (n1 === n2 || (`7_${c2}` === card || `12_${c2}` === card)) {
+        cards.splice(cards.indexOf(card), 1)
+        stack.unshift(card)
+        this.setState({ cards, stack })
+
+        i++
+        const u = [...this.state.users, ...this.state.users]
+        if (u[i] !== this.state.username) this.setState({ myTurn: false })
+        socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant: n1 === '7' ? cant+1 : cant+2 })
+        return
+      } else {
+        return alert('Jugada invalida!')
+      }
+    }
+
     cards.splice(cards.indexOf(card), 1)
     stack.unshift(card)
     this.setState({ cards, stack })
-    let i = this.state.users.indexOf(this.state.username)
+
+    if (n1 === '10') {
+      const palo = ['espada', 'oro', 'basto', 'copa']
+      const p = prompt('selecciona palo del 0 al 3')
+      const u = [...this.state.users, ...this.state.users]
+      i++
+      if (u[i] !== this.state.username) this.setState({ myTurn: false })
+      socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant: 0 })
+      stack[0] = `10_${palo[parseInt(p)]}`
+      socket.emit('change_palo', palo[parseInt(p)])
+      return
+    }
+
     if (n1 === '4' || n1 === '11') {
       i=i+2
     } else {
@@ -102,23 +159,31 @@ class Game extends React.Component {
     }
     const u = [...this.state.users, ...this.state.users]
     if (u[i] !== this.state.username) this.setState({ myTurn: false })
-    socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]) })
+
+    if (n1 === '7') {
+      cant = 1
+    } else if (n1 === '12') {
+      cant = 2
+    } else {
+      cant = 0
+    }
+    socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant })
   }
 
-  handleTakeCard () {
+  handleTakeCard (cant) {
     const socket = this.state.socket
-    const cards = this.state.cards
+    let cards = this.state.cards
     const mazo = this.state.mazo
-    cards.push(mazo[0])
-    mazo.splice(0, 1)
-    this.setState({ cards, mazo, myTurn: false })
-    let i = this.state.users.indexOf(this.state.username)
-    if (i + 1 > (this.state.users.length)-1) {
-      i = 0
-    } else {
-      i++
-    }
-    socket.emit('take_card', i)
+    const takeds = mazo.splice(0, cant)
+    cards = [...cards, ...takeds]
+
+    let i = this.state.users.indexOf(this.state.username)+1
+    const u = [...this.state.users, ...this.state.users]
+    const user = this.state.users.indexOf(u[i])
+    if (u[i] !== this.state.username) this.setState({ myTurn: false })
+
+    this.setState({ cards, mazo, cant: 0 })
+    socket.emit('take_card', { turn: user, cant })
   }
 
   async handleSave () {
@@ -140,7 +205,8 @@ class Game extends React.Component {
 
     const renderCards = this.state.cards.map((el, i) => {
       return (
-        <p key={i.toString()}>{el}
+        <p key={i.toString()}>
+          <img src={`/cards/${el}.jpg`} alt={el} width="144" height="200" /> <br/>
           {this.state.myTurn && <button onClick={() => this.handlePlayCard(el)}>Jugar</button>}
         </p>
       )
@@ -149,12 +215,17 @@ class Game extends React.Component {
     return (
       <Layout title="Game">
         <div style={{ textAlign: 'center' }}>
-          <p>Game: {this.state.roomId}</p>
-          <p>Conectados:</p>
+          <p>Game id {this.state.roomId}</p>
+          <p>Usuarios conectados</p>
           {renderUsers}
-          {this.state.myTurn && <div><button onClick={this.handleTakeCard}>Alzar</button></div>}
-          stack: {this.state.stack[0]}
-          <div>{renderCards}</div>
+          {this.state.myTurn && <div><button onClick={() => this.handleTakeCard(this.state.cant === 0 ? 1 : this.state.cant)}>Alzar</button></div>}
+          {this.state.gameStarted && <img src={`/cards/${this.state.stack[0]}.jpg`} alt={this.state.stack[0]} width="144" height="200" />}
+
+          <div>
+            <span>My cards</span>
+          </div>
+
+          <div className="cards">{renderCards}</div>
           {!this.state.gameStarted && <button onClick={this.handleStart}>Comenzar</button>}
         </div>
       </Layout>
