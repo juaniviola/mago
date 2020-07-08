@@ -121,7 +121,7 @@ export default class Login extends React.Component {
                     </Form.Group>
 
                     <Form.Group controlId="formBasicPass">
-                      <Form.Label>Contrasenia</Form.Label>
+                      <Form.Label>Contraseña</Form.Label>
                       <Form.Control
                         type="password"
                         placeholder="Ingrese la clave"
