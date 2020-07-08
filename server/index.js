@@ -45,6 +45,19 @@ function randomCards (users)  {
   return { userCards, cards, stack }
 }
 
+function mixCards (stack) {
+  const nStack = []
+  const oStack = stack
+
+  for (let i in stack.length) {
+    const x = Math.floor((Math.random() * (cards.length)))
+    nStack.push(oStack[x])
+    oStack.splice(x, 1)
+  }
+
+  return nStack
+}
+
 const rooms = {}
 function listenRoom (room) {
   const _io = rooms[room]
@@ -91,6 +104,12 @@ function listenRoom (room) {
     socket.on('play_card', ({ card, turn, cant }) => socket.broadcast.emit('card_played', { card, turn, cant }))
     socket.on('take_card', obj => socket.broadcast.emit('card_taked', obj))
     socket.on('change_palo', p => socket.broadcast.emit('palo_changed', p))
+    socket.on('winner', winner => socket.broadcast.emit('winner', winner))
+    socket.on('repartir', payload => {
+      const stack = mixCards(payload.stack)
+      _io.emit('repartido', { user: payload.user, cant: payload.cant, stack })
+    })
+    socket.on('clear_vars', () => _io.emit('clear'))
 
     socket.on('disconnect', async () => {
       try {

@@ -1,5 +1,6 @@
 import React from 'react'
 import io from 'socket.io-client'
+import { Modal, Toast, Button, Form, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Layout from '../../components/layout'
 import config from '../../config'
 import utils from '../../utils'
@@ -9,22 +10,30 @@ class Game extends React.Component {
     super(props)
     this.state = {
       roomId: null,
-      username: null,
+      username: '',
+      userModal: false,
       socket: null,
       users: [],
-      show: true,
+      show: false,
       gameStarted: false,
+      gameWinner: false,
+      winnerUser: '',
+      toast: false,
+      type: false,
       myTurn: false,
       cards: [],
       mazo: [],
-      stack: ['-'],
-      cant: 0
+      stack: [],
+      mainCard: '',
+      cant: 0,
+      turn: 0
     }
 
     this.handleStart = this.handleStart.bind(this)
     this.handleSave = this.handleSave.bind(this)
     this.handlePlayCard = this.handlePlayCard.bind(this)
     this.handleTakeCard = this.handleTakeCard.bind(this)
+    this.handleChange = this.handleChange.bind(this)
   }
 
   async componentDidMount () {
@@ -48,11 +57,11 @@ class Game extends React.Component {
     })
 
     socket.on('mazo', data => {
-      this.setState({ mazo: data.mazo, stack: data.stack, gameStarted: true, cant: data.cant })
+      this.setState({ mazo: data.mazo, stack: data.stack, gameStarted: true, cant: data.cant, mainCard: data.stack[0] })
       if (data.cant === 0) return
 
       if (this.state.myTurn === true) {
-        const cantTake = utils.canTakeCard(this.state.stack[0], this.state.cards)
+        const cantTake = utils.canTakeCard(this.state.mainCard, this.state.cards)
         if (!cantTake) {
           this.handleTakeCard(data.cant)
         }
@@ -62,11 +71,11 @@ class Game extends React.Component {
     socket.on('card_played', ({ card, turn, cant }) => {
       const stack = this.state.stack
       stack.unshift(card)
-      this.setState({ stack, cant })
+      this.setState({ stack, cant, mainCard: card, turn })
 
       if (cant !== 0) {
-        const cantTake = utils.canTakeCard(this.state.stack[0], this.state.cards)
-        if (!cantTake) {
+        const cantTake = utils.canTakeCard(this.state.mainCard, this.state.cards)
+        if (!cantTake && this.state.users[turn] === this.state.username) {
           this.handleTakeCard(cant)
           return
         }
@@ -80,28 +89,52 @@ class Game extends React.Component {
     socket.on('card_taked', ({ turn, cant }) => {
       const mazo = this.state.mazo
       mazo.splice(0, cant)
-      this.setState({ mazo, myTurn: false, cant: 0 })
+      this.setState({ mazo, myTurn: false, cant: 0, turn })
       if (this.state.users[turn] === this.state.username) {
         this.setState({ myTurn: true })
       }
     })
 
     socket.on('palo_changed', p => {
-      const stack = this.state.stack
-      stack[0] = `10_${p}`
-      this.setState({ stack })
+      this.setState({ mainCard: `10_${p}` })
     })
 
-    let user = ''
-    while (user === '' || !user) {
-      user = prompt('Nombre de usuario')
-    }
-    this.setState({ username: user })
-    this.handleSave()
+    socket.on('winner', payload => {
+      this.setState({ gameWinner: true, winnerUser: payload, show: true })
+    })
+
+    socket.on('repartido', payload => {
+      const { username, cant, stack } = payload
+
+      this.setState({ mazo: stack, stack: [] })
+      if (username === this.state.username) {
+        this.handleTakeCard(cant)
+      }
+    })
+
+    socket.on('clear', () => {
+      this.setState({
+        gameStarted: false,
+        gameWinner: false,
+        winnerUser: '',
+        myTurn: false,
+        cards: [],
+        mazo: [],
+        stack: [],
+        mainCard: '',
+        cant: 0,
+        turn: 0
+      })
+    })
+
+    this.setState({ userModal: true })
   }
 
-  handleStart () {
+  handleStart (code = 'start') {
+    if (this.state.users.length <= 1) return
+
     const socket = this.state.socket
+    socket.emit('clear_vars')
     socket.emit('start_match')
   }
 
@@ -109,14 +142,23 @@ class Game extends React.Component {
     const socket = this.state.socket
     const cards = this.state.cards
     const stack = this.state.stack
+    const username = this.state.username
 
     let i = this.state.users.indexOf(this.state.username)
     const c1 = card.slice(card.indexOf('_')+1, card.length)
-    const c2 = this.state.stack[0].slice(this.state.stack[0].indexOf('_')+1, this.state.stack[0].length)
+    const c2 = this.state.mainCard.slice(this.state.mainCard.indexOf('_')+1, this.state.mainCard.length)
     const n1 = card.slice(0, card.indexOf('_'))
-    const n2 = this.state.stack[0].slice(0, this.state.stack[0].indexOf('_'))
+    const n2 = this.state.mainCard.slice(0, this.state.mainCard.indexOf('_'))
+
+    if (n1 === '10') {
+      cards.splice(cards.indexOf(card), 1)
+      stack.unshift(card)
+      this.setState({ cards, stack, mainCard: card, type: true })
+      return
+    }
+
     if (c1 !== c2 && n1 !== n2) {
-      return alert('Jugada invalida!')
+      return this.setState({ toast: true })
     }
 
     let cant = this.state.cant
@@ -124,33 +166,27 @@ class Game extends React.Component {
       if (n1 === n2 || (`7_${c2}` === card || `12_${c2}` === card)) {
         cards.splice(cards.indexOf(card), 1)
         stack.unshift(card)
-        this.setState({ cards, stack })
+        this.setState({ cards, stack, mainCard: card })
 
         i++
         const u = [...this.state.users, ...this.state.users]
         if (u[i] !== this.state.username) this.setState({ myTurn: false })
+        this.setState({ turn: this.state.users.indexOf(u[i]) })
+
         socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant: n1 === '7' ? cant+1 : cant+2 })
+        if (this.state.cards.length === 0) {
+          socket.emit('winner', username)
+          this.setState({ gameWinner: true, winnerUser: username, show: true })
+        }
         return
       } else {
-        return alert('Jugada invalida!')
+        return this.setState({ toast: true })
       }
     }
 
     cards.splice(cards.indexOf(card), 1)
     stack.unshift(card)
-    this.setState({ cards, stack })
-
-    if (n1 === '10') {
-      const palo = ['espada', 'oro', 'basto', 'copa']
-      const p = prompt('selecciona palo del 0 al 3')
-      const u = [...this.state.users, ...this.state.users]
-      i++
-      if (u[i] !== this.state.username) this.setState({ myTurn: false })
-      socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant: 0 })
-      stack[0] = `10_${palo[parseInt(p)]}`
-      socket.emit('change_palo', palo[parseInt(p)])
-      return
-    }
+    this.setState({ cards, stack, mainCard: card })
 
     if (n1 === '4' || n1 === '11') {
       i=i+2
@@ -159,6 +195,7 @@ class Game extends React.Component {
     }
     const u = [...this.state.users, ...this.state.users]
     if (u[i] !== this.state.username) this.setState({ myTurn: false })
+    this.setState({ turn: this.state.users.indexOf(u[i]) })
 
     if (n1 === '7') {
       cant = 1
@@ -168,12 +205,21 @@ class Game extends React.Component {
       cant = 0
     }
     socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant })
+    if (this.state.cards.length === 0) {
+      socket.emit('winner', username)
+      this.setState({ gameWinner: true, winnerUser: username, show: true })
+    }
   }
 
   handleTakeCard (cant) {
     const socket = this.state.socket
     let cards = this.state.cards
     const mazo = this.state.mazo
+
+    if (mazo.length < cant && this.state.stack.length >= cant) {
+      return socket.emit('repartir', { user: this.state.username, cant, stack: this.state.stack.slice(1, this.state.stack.length) })
+    }
+
     const takeds = mazo.splice(0, cant)
     cards = [...cards, ...takeds]
 
@@ -182,7 +228,7 @@ class Game extends React.Component {
     const user = this.state.users.indexOf(u[i])
     if (u[i] !== this.state.username) this.setState({ myTurn: false })
 
-    this.setState({ cards, mazo, cant: 0 })
+    this.setState({ cards, mazo, cant: 0, turn: user })
     socket.emit('take_card', { turn: user, cant })
   }
 
@@ -194,8 +240,26 @@ class Game extends React.Component {
       socket.emit('new_player', { username, token})
       this.setState({ show: false })
     } else {
-      alert('type username!')
+      return this.setState({ userModal: true })
     }
+    this.setState({ userModal: false })
+  }
+
+  async handleChange (palo) {
+    const socket = this.state.socket
+    const card = this.state.socket[0]
+    const u = [...this.state.users, ...this.state.users]
+    let i = this.state.users.indexOf(this.state.username)
+    i++
+    if (u[i] !== this.state.username) this.setState({ myTurn: false })
+    this.setState({ turn: this.state.users.indexOf(u[i]) })
+    socket.emit('play_card', { card, turn: this.state.users.indexOf(u[i]), cant: 0 })
+    if (this.state.cards.length === 0) {
+      socket.emit('winner', this.state.username)
+      this.setState({ gameWinner: true, winnerUser: this.state.username, show: true })
+    }
+    this.setState({ mainCard: `10_${palo}`, type: false})
+    socket.emit('change_palo', palo)
   }
 
   render () {
@@ -206,8 +270,22 @@ class Game extends React.Component {
     const renderCards = this.state.cards.map((el, i) => {
       return (
         <p key={i.toString()}>
-          <img src={`/cards/${el}.jpg`} alt={el} width="144" height="200" /> <br/>
-          {this.state.myTurn && <button onClick={() => this.handlePlayCard(el)}>Jugar</button>}
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`tooltip-top`}>
+                {this.state.myTurn && <strong>Jugar</strong>}
+                {!this.state.myTurn && <span>Espera tu turno</span>}
+              </Tooltip>
+            }
+          >
+            <img
+              className={`cardPlay ${this.state.myTurn ? 'cursorCardPlay' : ''}`}
+              src={`/cards/${el}.jpg`}
+              alt={el} width="115.2" height="160"
+              onClick={() => this.state.myTurn ? this.handlePlayCard(el) : null}
+            />
+          </OverlayTrigger> <br/>
         </p>
       )
     })
@@ -215,18 +293,120 @@ class Game extends React.Component {
     return (
       <Layout title="Game">
         <div style={{ textAlign: 'center' }}>
-          <p>Game id {this.state.roomId}</p>
-          <p>Usuarios conectados</p>
-          {renderUsers}
-          {this.state.myTurn && <div><button onClick={() => this.handleTakeCard(this.state.cant === 0 ? 1 : this.state.cant)}>Alzar</button></div>}
-          {this.state.gameStarted && <img src={`/cards/${this.state.stack[0]}.jpg`} alt={this.state.stack[0]} width="144" height="200" />}
+          {/* Muestra el id de la sala y los usuarios conectados */}
+          <div style={{ marginRight: 15, marginLeft: 15}}>
+            <Alert variant="dark" style={{ marginTop: 10 }}>
+              Nombre de la mesa <strong>{this.state.roomId}</strong>
+            </Alert>
 
-          <div>
-            <span>My cards</span>
+            <Alert variant="primary">
+              <strong>Usuarios conectados</strong>
+              {renderUsers} <br/>
+              {this.state.gameStarted && <span>Turno de <strong>{this.state.users[this.state.turn]}</strong></span>}
+            </Alert>
           </div>
 
-          <div className="cards">{renderCards}</div>
-          {!this.state.gameStarted && <button onClick={this.handleStart}>Comenzar</button>}
+          {/* Carta que lanzan los jugadores */}
+          {(this.state.gameStarted && !this.state.gameWinner) && <img src={`/cards/${this.state.mainCard}.jpg`} alt={this.state.mainCard} width="115.2" height="160" style={{ marginTop: 30, borderRadius: 10 }} />}
+
+          {/* Boton para alzar carta del mazo */}
+          {(this.state.myTurn && !this.state.gameWinner) && <div>
+            <Button
+              variant="info"
+              onClick={() => this.handleTakeCard(this.state.cant === 0 ? 1 : this.state.cant)}
+              style={{ marginBottom: 15 }}>Alzar</Button>
+          </div>}
+
+          {/* Muestra las cartas disponibles del usuario */}
+          {(!this.state.gameWinner && this.state.gameStarted) && <div><span>Mis cartas</span></div>}
+          {!this.state.gameWinner && <div className="cards">{renderCards}</div>}
+
+          {/* Comenzar juego */}
+          {(!this.state.gameStarted && !this.state.gameWinner) && <Button variant="dark" onClick={this.handleStart}>Comenzar</Button>}
+
+          {/* Modal para el nombre de usuario */}
+          <Modal show={this.state.userModal} backdrop="static" keyboard={false}>
+            <Modal.Header>
+              <Modal.Title>Bienvenido!</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              <Form>
+                <Form.Group controlId="formBasicNick">
+                  <Form.Label>Nickname</Form.Label>
+                  <Form.Control type="text" placeholder="Ingrese un nickname" onChange={(el) => this.setState({ username: el.target.value }) } />
+                </Form.Group>
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="primary" onClick={this.handleSave}>
+                Aceptar
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          {/* Modal para el ganador */}
+          <Modal show={this.state.show} onHide={() => this.setState({ show: false })}>
+            <Modal.Header closeButton>
+              <Modal.Title>Hay un ganador!</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              <p>El juego termino, ha ganado {this.state.winnerUser}</p>
+            </Modal.Body>
+          </Modal>
+
+          {/* Modal para el cambiar el tipo de carta */}
+          <Modal show={this.state.type} backdrop="static" keyboard={false}>
+            <Modal.Header>
+              <Modal.Title>Selecciona el tipo de carta</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              <Button
+                variant="warning"
+                style={{ marginRight: 10 }}
+                onClick={() => this.handleChange('oro')}>
+                Oro
+              </Button>
+              <Button
+                variant="success"
+                style={{ marginRight: 10 }}
+                onClick={() => this.handleChange('basto')}>
+                Basto
+              </Button>
+              <Button
+                variant="primary"
+                style={{ marginRight: 10 }}
+                onClick={() => this.handleChange('espada')}>
+                Espada
+              </Button>
+              <Button
+                variant="danger"
+                style={{ marginRight: 10 }}
+                onClick={() => this.handleChange('copa')}>
+                Copa
+              </Button>
+            </Modal.Body>
+          </Modal>
+
+          {/* Muestra el ganador */}
+          {this.state.gameWinner && <div>
+            <span>El ganador del juego es {this.state.winnerUser}</span>
+            <div><Button variant="dark" onClick={this.handleStart}>Jugar otro</Button></div>
+          </div>}
+
+          {/* Error toast */}
+          <Toast
+            onClose={() => this.setState({ toast: false})}
+            show={this.state.toast} delay={1500} autohide
+            className="toast"
+          >
+            <Toast.Header>
+              <strong className="mr-auto error">Error!</strong>
+            </Toast.Header>
+            <Toast.Body>No puedes jugar esa carta!</Toast.Body>
+          </Toast>
         </div>
       </Layout>
     )

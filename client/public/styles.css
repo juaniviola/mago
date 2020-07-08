@@ -1,8 +1,30 @@
 .cards {
   overflow: auto;
   white-space: nowrap;
+  margin-bottom: 20px;
+}
+
+.cardPlay {
+  border-radius: 10px;
+  margin-right: 8px;
+  margin-left: 8px;
+}
+
+.cursorCardPlay {
+  border: 3px solid green;
+  cursor: pointer;
 }
 
 .cards p {
   display: inline-block;
+}
+
+.error {
+  color: red;
+}
+
+.toast {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
 }
