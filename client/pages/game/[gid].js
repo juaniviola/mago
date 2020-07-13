@@ -1,9 +1,14 @@
 import React from 'react'
 import io from 'socket.io-client'
-import { Modal, Toast, Button, Form, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Button, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Layout from '../../components/layout'
 import config from '../../config'
 import utils from '../../utils'
+
+import NickModal from '../../components/modals/nickModal'
+import TypeCardModal from '../../components/modals/typeCardModal'
+import WinnerModal from '../../components/modals/winnerModal'
+import ErrorToast from '../../components/errorToast'
 
 class Game extends React.Component {
   constructor (props) {
@@ -47,6 +52,11 @@ class Game extends React.Component {
 
     socket.on('user_connected', users => {
       this.setState({ users: JSON.parse(users).users })
+    })
+
+    socket.on('user_disconnected', users => {
+      this.setState({ users: JSON.parse(users).users })
+      if (this.state.users.length <= 1) this.setState({ gameStarted: false, myTurn: false })
     })
 
     socket.on('card', data => {
@@ -130,7 +140,7 @@ class Game extends React.Component {
     this.setState({ userModal: true })
   }
 
-  handleStart (code = 'start') {
+  handleStart () {
     if (this.state.users.length <= 1) return
 
     const socket = this.state.socket
@@ -319,94 +329,39 @@ class Game extends React.Component {
 
           {/* Muestra las cartas disponibles del usuario */}
           {(!this.state.gameWinner && this.state.gameStarted) && <div><span>Mis cartas</span></div>}
-          {!this.state.gameWinner && <div className="cards">{renderCards}</div>}
+          {(!this.state.gameWinner && this.state.gameStarted) && <div className="cards">{renderCards}</div>}
 
           {/* Comenzar juego */}
           {(!this.state.gameStarted && !this.state.gameWinner) && <Button variant="dark" onClick={this.handleStart}>Comenzar</Button>}
 
           {/* Modal para el nombre de usuario */}
-          <Modal show={this.state.userModal} backdrop="static" keyboard={false}>
-            <Modal.Header>
-              <Modal.Title>Bienvenido!</Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              <Form>
-                <Form.Group controlId="formBasicNick">
-                  <Form.Label>Nickname</Form.Label>
-                  <Form.Control type="text" placeholder="Ingrese un nickname" onChange={(el) => this.setState({ username: el.target.value }) } />
-                </Form.Group>
-              </Form>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="primary" onClick={this.handleSave}>
-                Aceptar
-              </Button>
-            </Modal.Footer>
-          </Modal>
+          <NickModal
+            userModal={this.state.userModal}
+            handlesave={this.handleSave}
+            changevalue={(us) => this.setState({ username: us })}
+          />
 
           {/* Modal para el ganador */}
-          <Modal show={this.state.show} onHide={() => this.setState({ show: false })}>
-            <Modal.Header closeButton>
-              <Modal.Title>Hay un ganador!</Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              <p>El juego termino, ha ganado {this.state.winnerUser}</p>
-            </Modal.Body>
-          </Modal>
+          <WinnerModal
+            show={this.state.show}
+            close={() => this.setState({ show: false })}
+            winner={this.state.winnerUser}
+          />
 
           {/* Modal para el cambiar el tipo de carta */}
-          <Modal show={this.state.type} backdrop="static" keyboard={false}>
-            <Modal.Header>
-              <Modal.Title>Selecciona el tipo de carta</Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              <Button
-                variant="warning"
-                style={{ marginRight: 10 }}
-                onClick={() => this.handleChange('oro')}>
-                Oro
-              </Button>
-              <Button
-                variant="success"
-                style={{ marginRight: 10 }}
-                onClick={() => this.handleChange('basto')}>
-                Basto
-              </Button>
-              <Button
-                variant="primary"
-                style={{ marginRight: 10 }}
-                onClick={() => this.handleChange('espada')}>
-                Espada
-              </Button>
-              <Button
-                variant="danger"
-                style={{ marginRight: 10 }}
-                onClick={() => this.handleChange('copa')}>
-                Copa
-              </Button>
-            </Modal.Body>
-          </Modal>
+          <TypeCardModal type={this.state.type} handlechange={this.handleChange} />
 
           {/* Muestra el ganador */}
           {this.state.gameWinner && <div>
-            <span>El ganador del juego es {this.state.winnerUser}</span>
+            <span style={{ marginBottom: 15 }}>El ganador del juego es {this.state.winnerUser}</span>
             <div><Button variant="dark" onClick={this.handleStart}>Jugar otro</Button></div>
           </div>}
 
           {/* Error toast */}
-          <Toast
-            onClose={() => this.setState({ toast: false})}
-            show={this.state.toast} delay={1500} autohide
-            className="toast"
-          >
-            <Toast.Header>
-              <strong className="mr-auto error">Error!</strong>
-            </Toast.Header>
-            <Toast.Body>No puedes jugar esa carta!</Toast.Body>
-          </Toast>
+          <ErrorToast
+            onclose={() => this.setState({ toast: false})}
+            toast={this.state.toast}
+          />
         </div>
       </Layout>
     )
