@@ -79,7 +79,7 @@ function listenRoom (room) {
         for (let i in u) {
           if (i%2 === 0) users.push(u[i])
         }
-        _io.emit('user_connected', JSON.stringify({ users }))
+        _io.emit('user_disconnected', JSON.stringify({ users }))
       } catch (error) {
         console.log(error)
       }

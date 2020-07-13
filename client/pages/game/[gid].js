@@ -54,6 +54,11 @@ class Game extends React.Component {
       this.setState({ users: JSON.parse(users).users })
     })
 
+    socket.on('user_disconnected', users => {
+      this.setState({ users: JSON.parse(users).users })
+      if (this.state.users.length <= 1) this.setState({ gameStarted: false, myTurn: false })
+    })
+
     socket.on('card', data => {
       this.setState({ cards: data.cards })
       if (this.state.users[data.turn] === this.state.username) {
@@ -324,7 +329,7 @@ class Game extends React.Component {
 
           {/* Muestra las cartas disponibles del usuario */}
           {(!this.state.gameWinner && this.state.gameStarted) && <div><span>Mis cartas</span></div>}
-          {!this.state.gameWinner && <div className="cards">{renderCards}</div>}
+          {(!this.state.gameWinner && this.state.gameStarted) && <div className="cards">{renderCards}</div>}
 
           {/* Comenzar juego */}
           {(!this.state.gameStarted && !this.state.gameWinner) && <Button variant="dark" onClick={this.handleStart}>Comenzar</Button>}
