@@ -16,7 +16,8 @@ export default class Login extends React.Component {
       message: 'Ha ocurrido un error',
       visible2: false,
       variant2: 'danger',
-      message2: 'Ha ocurrido un error'
+      message2: 'Ha ocurrido un error',
+      isLoading: false
     }
     this.handleCreateRoom = this.handleCreateRoom.bind(this)
     this.handleLoginRoom = this.handleLoginRoom.bind(this)
@@ -47,11 +48,14 @@ export default class Login extends React.Component {
         body: JSON.stringify({
           password: this.state.password,
           roomId: this.state.room
-        })
+        }),
+        mode: 'cors'
       }
 
+      this.setState({ isLoading: true })
       const res = await fetch(`${config.server}/login`, options)
       const data = await res.json()
+      this.setState({ isLoading: false })
 
       if (data.error) return this.handleError()
 
@@ -59,6 +63,7 @@ export default class Login extends React.Component {
       localStorage.setItem('token', data.token)
       Router.push(`/game/${this.state.room}`)
     } catch (err) {
+      this.setState({ isLoading: false })
       this.handleError()
     }
   }
@@ -78,11 +83,14 @@ export default class Login extends React.Component {
         },
         body: JSON.stringify({
           password: this.state.password
-        })
+        }),
+        mode: 'no-cors'
       }
 
+      this.setState({ isLoading: true })
       const res = await fetch(`${config.server}/create`, options)
       const data = await res.json()
+      this.setState({ isLoading: false })
 
       if (data.error) return this.handleError()
 
@@ -90,6 +98,7 @@ export default class Login extends React.Component {
       localStorage.setItem('token', data.token)
       Router.push(`/game/${data.roomId}`)
     } catch (err) {
+      this.setState({ isLoading: false })
       this.handleError()
     }
   }
@@ -129,7 +138,11 @@ export default class Login extends React.Component {
                       />
                     </Form.Group>
 
-                    <Button variant="primary" type="submit" onClick={this.handleLoginRoom}>Entrar</Button>
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      onClick={this.handleLoginRoom}
+                      disabled={this.state.isLoading}>{this.state.isLoading ? 'Cargando...' : 'Entrar'}</Button>
                   </Form>
                 </Card.Body>
               </Accordion.Collapse>
@@ -154,7 +167,11 @@ export default class Login extends React.Component {
                       />
                     </Form.Group>
 
-                    <Button variant="primary" type="submit" onClick={this.handleCreateRoom}>Crear</Button>
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      onClick={this.handleCreateRoom}
+                      disabled={this.state.isLoading}>{this.state.isLoading ? 'Cargando...' : 'Crear'}</Button>
                   </Form>
                 </Card.Body>
               </Accordion.Collapse>

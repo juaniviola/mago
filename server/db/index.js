@@ -4,7 +4,13 @@ const redis = require('redis')
 const shortid = require('shortid')
 const { promisify } = require('util')
 
-const client = redis.createClient()
+require('dotenv').config()
+const config = {
+  hostDB: process.env.DB_HOST || 'http://localhost',
+  portDB: process.env.DB_PORT || 6378
+}
+
+const client = redis.createClient({ host: config.hostDB, port: config.portDB })
 client.on('error', error => console.error(error))
 client.on('connect', () => {
   console.log('connected')
@@ -13,6 +19,7 @@ client.on('connect', () => {
 // methods
 const hmset = promisify(client.hmset).bind(client)
 const hgetall = promisify(client.hgetall).bind(client)
+const hdel = promisify(client.hdel).bind(client)
 const lrange = promisify(client.lrange).bind(client)
 const rpush = promisify(client.rpush).bind(client)
 const delSet = promisify(client.DEL).bind(client)
@@ -21,12 +28,24 @@ module.exports = {
   async createRoom ({ password }) {
     try {
       const roomId = shortid.generate()
-      await hmset(roomId, ['id', roomId, 'password', password])
+      await hmset(roomId, ['id', roomId, 'password', password, 'started', false])
 
       return { roomId }
     } catch (error) {
       return { error }
     }
+  },
+
+  async updateRoom (roomId) {
+    return hmset(roomId, ['started', true])
+  },
+
+  async getRoom (roomId) {
+    return hgetall(roomId)
+  },
+
+  async delRoom (roomId) {
+    return hdel(roomId, 'id', 'password', 'started')
   },
 
   async loginRoom ({ roomId, password }) {

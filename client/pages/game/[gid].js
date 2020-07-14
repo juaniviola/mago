@@ -122,6 +122,10 @@ class Game extends React.Component {
       }
     })
 
+    socket.on('error_connection', () => {
+      alert('la partida ya empezo')
+    })
+
     socket.on('clear', () => {
       this.setState({
         gameStarted: false,
