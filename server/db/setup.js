@@ -1,14 +1,12 @@
 import { Sequelize } from 'sequelize';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
+const dirname = path.join(path.resolve(), './db');
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: path.join(dirname, 'db.sqlite'),
-  logging: true,
+  logging: false,
 });
 
 export default sequelize;
