@@ -1,20 +1,35 @@
-const UserApi = (User) => {
-  const createUser = ({ username }) => User.create({ username });
+const UserApi = (User, redisClient) => {
+  const create = ({ username }) => User.create({ username });
 
-  const addUserToRoom = ({ username, roomId }) => User.update(
-    { roomId },
-    { where: { username } },
-  );
+  const addToRoom = async ({ username, roomId, socketId }) => {
+    const update = await User.update(
+      { roomId },
+      { where: { username } },
+    );
 
-  const deleteUser = (username) => User.destroy({ where: { username } });
+    await redisClient.hSet(`${roomId}`, username, socketId);
 
-  const getUsersFromRoom = (roomId) => User.findAll({ where: { roomId } });
+    return update;
+  };
+
+  const remove = (username) => User.destroy({ where: { username } });
+
+  const getFromRoom = (roomId) => User.findAll({ where: { roomId } });
+
+  const getSocket = ({ roomId, username }) => redisClient.hGet(`${roomId}`, username);
+
+  const getRoomSockets = (roomId) => redisClient.hGetAll(`${roomId}`);
+
+  const removeSocket = ({ roomId, username }) => redisClient.hDel(`${roomId}`, username);
 
   return {
-    createUser,
-    addUserToRoom,
-    deleteUser,
-    getUsersFromRoom,
+    create,
+    addToRoom,
+    remove,
+    getFromRoom,
+    getSocket,
+    getRoomSockets,
+    removeSocket,
   };
 };
 
