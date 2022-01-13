@@ -1,15 +1,15 @@
 const RoomApi = (Room) => {
-  const createRoom = ({ userOwner, password = '' } = {}) => Room.create({
+  const create = ({ userOwner, password = '' } = {}) => Room.create({
     userOwner,
     password,
     started: false,
   });
 
-  const getRoom = (id) => Room.findOne({ where: { id } });
+  const get = (id) => Room.findOne({ where: { id } });
 
-  const getAllRooms = () => Room.findAll({});
+  const getAll = () => Room.findAll({});
 
-  const updateRoomStatus = ({ roomId, started }) => Room.update(
+  const updateStatus = ({ roomId, started }) => Room.update(
     { started },
     { where: { id: roomId } },
   );
@@ -26,15 +26,15 @@ const RoomApi = (Room) => {
     }
   };
 
-  const deleteRoom = (roomId) => Room.destroy({ where: { id: roomId } });
+  const remove = (roomId) => Room.destroy({ where: { id: roomId } });
 
   return {
-    createRoom,
-    getRoom,
-    getAllRooms,
-    updateRoomStatus,
+    create,
+    get,
+    getAll,
+    updateStatus,
     areCredentialsValid,
-    deleteRoom,
+    remove,
   };
 };
 
