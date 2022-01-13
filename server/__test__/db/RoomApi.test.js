@@ -12,10 +12,10 @@ describe('Room Api methods', () => {
   });
 
   it('createRoom -> should create new row', async () => {
-    await User.createUser({ username: 'test' });
+    await User.create({ username: 'test' });
 
     const userOwner = 1, password = 'foo';
-    const newRoom = await Room.createRoom({ userOwner, password });
+    const newRoom = await Room.create({ userOwner, password });
 
     expect(newRoom).toBeTruthy();
     expect(newRoom.userOwner).toEqual(userOwner);
@@ -25,7 +25,7 @@ describe('Room Api methods', () => {
 
   it('getRoom -> should return one room with id 1', async () => {
     const id = 1;
-    const room = await Room.getRoom(id);
+    const room = await Room.get(id);
 
     expect(room).toBeTruthy();
     expect(room.id).toBe(id);
@@ -36,8 +36,8 @@ describe('Room Api methods', () => {
 
   it('updateRoomStatus -> should update started field to true', async () => {
     const id = 1;
-    await Room.updateRoomStatus({ roomId: id, started: true });
-    const room = await Room.getRoom(id);
+    await Room.updateStatus({ roomId: id, started: true });
+    const room = await Room.get(id);
 
     expect(room.started).toBe(true);
   });
@@ -61,19 +61,19 @@ describe('Room Api methods', () => {
   });
 
   it('getAllRooms -> should return 2 rooms', async () => {
-    await User.createUser({ username: 'test2' });
-    await Room.createRoom({ userOwner: 2 });
+    await User.create({ username: 'test2' });
+    await Room.create({ userOwner: 2 });
 
-    const rooms = await Room.getAllRooms();
+    const rooms = await Room.getAll();
 
     expect(rooms).toBeTruthy();
     expect(rooms.length).toBe(2);
   });
 
   it('deleteRoom -> should delete 1 room', async () => {
-    await Room.deleteRoom(2);
+    await Room.remove(2);
 
-    const rooms = await Room.getAllRooms();
+    const rooms = await Room.getAll();
 
     expect(rooms.length).toBe(1);
   });
