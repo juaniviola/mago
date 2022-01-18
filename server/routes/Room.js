@@ -1,4 +1,5 @@
 import express from 'express';
+import socketLogic from '../socket';
 
 const app = express.Router();
 
@@ -37,16 +38,20 @@ app.post('/create', async (req, res) => {
   const { username, password } = req.body;
   const roomApi = req.app.get('roomApi');
   const userApi = req.app.get('userApi');
+  const io = req.app.get('io');
 
   try {
     const newRoom = await roomApi.create({ password });
     if (!newRoom || !newRoom.dataValues || !newRoom.dataValues.id) throw Error(0);
 
+    // set owner of room in hash 'owner'
     await userApi.set({
       roomId: 'owner',
       username: newRoom.id,
       socketId: username,
     });
+
+    socketLogic(io.of(`/${newRoom.id}`));
 
     res.json({ id: newRoom.id });
   } catch (error) {
