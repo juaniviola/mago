@@ -7,7 +7,7 @@ describe('simple User Api methods', () => {
   let fooUser = null;
 
   beforeAll(async () => {
-    const db = await database({ force: true });
+    const db = await database.connect({ force: true });
     User = db.User;
   });
 

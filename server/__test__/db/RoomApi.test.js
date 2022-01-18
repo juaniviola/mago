@@ -6,7 +6,7 @@ describe('Room Api methods', () => {
   let Room = null;
 
   beforeAll(async () => {
-    const db = await database({ force: true });
+    const db = await database.connect({ force: true });
     Room = db.Room;
   });
 
