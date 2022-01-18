@@ -1,21 +1,20 @@
 import { createClient } from 'redis';
 import sequelize from './setup';
-import { User, Room } from './models';
+import { Room } from './models';
 import { UserApi, RoomApi } from './api';
 
-export default async ({ force = false } = {}) => {
+export default async ({ force = false, redisUrl = null } = {}) => {
   try {
     await sequelize.authenticate();
     await sequelize.sync({ force });
 
-    // TODO: add connection url
-    const redisClient = createClient();
-    redisClient.on('error', (err) => console.log('error connection', err));
+    const redisClient = redisUrl ? createClient({ url: redisUrl }) : createClient();
+    redisClient.on('error', (err) => console.log('redis conn error:', err));
 
     await redisClient.connect();
 
     const api = {
-      User: UserApi(User, redisClient),
+      User: UserApi(redisClient),
       Room: RoomApi(Room),
     };
 
