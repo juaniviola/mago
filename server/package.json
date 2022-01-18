@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --experimental-modules --es-module-specifier-resolution=node index.js",
     "test": "jest --runInBand --forceExit"
   },
   "repository": {
@@ -23,7 +23,6 @@
     "dotenv": "^11.0.0",
     "express": "^4.17.2",
     "helmet": "^5.0.1",
-    "jsonwebtoken": "^8.5.1",
     "redis": "^4.0.1",
     "sequelize": "^6.13.0",
     "shortid": "^2.2.16",
