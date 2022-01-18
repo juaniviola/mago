@@ -2,79 +2,79 @@ import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import database from '../../db';
 
-describe('Room Api methods', () => {
+describe('simple User Api methods', () => {
   let User;
-  let fooUser = null, testUser = null;
+  let fooUser = null;
 
   beforeAll(async () => {
     const db = await database({ force: true });
     User = db.User;
   });
 
-  it('create -> should create new row', async () => {
+  it('set -> should insert new user', async () => {
     const username = 'test';
-    const newUser = await User.create({ username });
-    testUser = { id: newUser.id, username, roomId: 1, socketId: 1 };
+    await User.set({ roomId: 1, username, socketId: '1' });
+    fooUser = { roomId: 1, username, socketId: 1 };
 
-    expect(newUser).toBeTruthy();
-    expect(newUser.username).toEqual(username);
+    const getUserInserted = await User.get({ roomId: 1, username });
+
+    expect(getUserInserted).toBeTruthy();
+    expect(getUserInserted).toEqual('1');
   });
 
-  it('addToRoom -> should update roomId column', async () => {
-    const { roomId, username, socketId } = testUser;
-    const add = await User.addToRoom({ username, roomId, socketId });
-
-    expect(add).toBeTruthy();
-    expect(JSON.stringify(add)).toEqual('[1]');
-  });
-
-  it('getFromRoom -> it should return 2 users from room 1', async () => {
-    const foo = await User.create({ username: 'foo' });
-    fooUser = { username: 'foo', id: foo.id, roomId: 1, socketId: 2 };
-
-    await User.addToRoom({ username: 'foo', roomId: 1, socketId: 2 });
-
-    const roomUsers = await User.getFromRoom(1);
-
-    expect(roomUsers).toBeTruthy();
-    expect(roomUsers.length).toBe(2);
-  });
-
-  it('remove -> should delete one user', async () => {
-    await User.remove('foo');
-
-    const roomUsers = await User.getFromRoom(1);
-
-    expect(roomUsers).toBeTruthy();
-    expect(roomUsers.length).toBe(1);
-  });
-
-  it('getSocket -> should return socketId of user by username', async () => {
+  it('get -> should return socketId of user by username', async () => {
     const { username, roomId } = fooUser;
-    const fooSocket = await User.getSocket({ roomId, username });
+    const fooSocket = await User.get({ roomId, username });
 
     expect(fooSocket).toBeTruthy();
-    expect(fooSocket).toBe(`${2}`);
+    expect(fooSocket).toBe(`${1}`);
   });
 
-  it('getRoomSockets -> should return 2 sockets in room 1', async () => {
+  it('getFromRoom -> should return 2 sockets in room 1', async () => {
     const { username, roomId, socketId } = fooUser;
-    const usernameTest = testUser.username, socketIdTest = testUser.socketId;
 
-    const sockets = await User.getRoomSockets(roomId);
+    const sockets = await User.getFromRoom(roomId);
 
     expect(sockets).toBeTruthy();
     expect(sockets[username]).toBe(`${socketId}`);
-    expect(sockets[usernameTest]).toBe(`${socketIdTest}`);
   });
 
-  it('removeSocket -> should delete from hash user by username', async () => {
+  it('remove -> should delete from hash user by username', async () => {
     const { username, roomId } = fooUser;
-    await User.removeSocket({ username, roomId });
+    await User.remove({ username, roomId });
 
-    const sockets = await User.getRoomSockets(roomId);
+    const sockets = await User.getFromRoom(roomId);
 
     expect(sockets).toBeTruthy();
     expect(sockets[username]).toBeFalsy();
+  });
+
+  describe('owner User api methods', () => {
+    let foo = null;
+
+    it('setOwner -> set owner of room', async () => {
+      foo = { roomId: 1, username: 'fooo' };
+      await User.setOwner(foo);
+
+      const owner = await User.getOwner(foo.roomId);
+
+      expect(owner).toBeTruthy();
+      expect(owner).toEqual(foo.username);
+    });
+
+    it('getOwner -> get owner of room', async () => {
+      const owner = await User.getOwner(foo.roomId);
+
+      expect(owner).toBeTruthy();
+      expect(owner).toEqual(foo.username);
+    });
+
+    it('removeOwner -> delete roomId with username', async () => {
+      await User.removeOwner(foo.roomId);
+
+      const owner = await User.getOwner(foo.roomId);
+
+      expect(owner).toBeFalsy();
+    });
   });
 });
