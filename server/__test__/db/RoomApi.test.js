@@ -3,38 +3,33 @@ import 'regenerator-runtime/runtime';
 import database from '../../db';
 
 describe('Room Api methods', () => {
-  let User, Room = null;
+  let Room = null;
 
   beforeAll(async () => {
     const db = await database({ force: true });
-    User = db.User;
     Room = db.Room;
   });
 
-  it('createRoom -> should create new row', async () => {
-    await User.create({ username: 'test' });
-
-    const userOwner = 1, password = 'foo';
-    const newRoom = await Room.create({ userOwner, password });
+  it('create -> should create new row', async () => {
+    const password = 'foo';
+    const newRoom = await Room.create({ password });
 
     expect(newRoom).toBeTruthy();
-    expect(newRoom.userOwner).toEqual(userOwner);
     expect(newRoom.password).toBe(password);
     expect(newRoom.started).toBe(false);
   });
 
-  it('getRoom -> should return one room with id 1', async () => {
+  it('get -> should return one room with id 1', async () => {
     const id = 1;
     const room = await Room.get(id);
 
     expect(room).toBeTruthy();
     expect(room.id).toBe(id);
-    expect(room.userOwner).toEqual(1);
     expect(room.password).toBe('foo');
     expect(room.started).toBe(false);
   });
 
-  it('updateRoomStatus -> should update started field to true', async () => {
+  it('updateStatus -> should update started field to true', async () => {
     const id = 1;
     await Room.updateStatus({ roomId: id, started: true });
     const room = await Room.get(id);
@@ -60,21 +55,20 @@ describe('Room Api methods', () => {
     expect(error).toEqual('Error: Invalid credentials');
   });
 
-  it('getAllRooms -> should return 2 rooms', async () => {
-    await User.create({ username: 'test2' });
-    await Room.create({ userOwner: 2 });
+  it('getAll -> should return 1 rooms (only 1 room public)', async () => {
+    await Room.create();
 
     const rooms = await Room.getAll();
 
     expect(rooms).toBeTruthy();
-    expect(rooms.length).toBe(2);
+    expect(rooms.length).toBe(1);
   });
 
-  it('deleteRoom -> should delete 1 room', async () => {
+  it('remove -> should delete 1 room', async () => {
     await Room.remove(2);
 
     const rooms = await Room.getAll();
 
-    expect(rooms.length).toBe(1);
+    expect(rooms.length).toBe(0);
   });
 });
