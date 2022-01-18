@@ -19,11 +19,6 @@ Room.init({
     type: Sequelize.BOOLEAN,
     allowNull: false,
   },
-
-  userOwner: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
 }, {
   sequelize,
   modelName: 'rooms',
