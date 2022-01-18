@@ -1,20 +1,23 @@
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
+import socketio from 'socket.io';
 
-import setupDb from './db';
+import database from './db';
 
 import RoomRoute from './routes';
 
 const app = express();
 const httpServer = http.createServer(app);
+const io = socketio(http);
 
 app.use(cors());
 app.use(express.json());
+app.set('io', io);
 
 const connectDatabase = async () => {
   try {
-    const api = await setupDb({ force: true });
+    const api = await database.connect();
     const { User, Room } = api;
 
     app.set('userApi', User);
