@@ -1,13 +1,17 @@
 const RoomApi = (Room) => {
-  const create = ({ userOwner, password = '' } = {}) => Room.create({
-    userOwner,
+  const create = ({ password = '' } = {}) => Room.create({
     password,
     started: false,
   });
 
   const get = (id) => Room.findOne({ where: { id } });
 
-  const getAll = () => Room.findAll({});
+  const getAll = () => Room.findAll({
+    where: {
+      started: false,
+      password: '',
+    },
+  });
 
   const updateStatus = ({ roomId, started }) => Room.update(
     { started },
