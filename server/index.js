@@ -1,7 +1,7 @@
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
-import socketio from 'socket.io';
+import { Server } from 'socket.io';
 
 import database from './db';
 
@@ -9,7 +9,7 @@ import RoomRoute from './routes';
 
 const app = express();
 const httpServer = http.createServer(app);
-const io = socketio(http);
+const io = new Server(http);
 
 app.use(cors());
 app.use(express.json());
