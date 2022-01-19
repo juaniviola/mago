@@ -1,7 +1,8 @@
 import shortid from 'shortid';
 import database from '../db';
-import { randomCards } from '../utils';
+import cardUtils from '../utils';
 
+const { randomCards } = cardUtils;
 const { User, Room } = database;
 
 export default function (io, socket) {
