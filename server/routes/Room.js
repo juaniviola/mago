@@ -66,10 +66,13 @@ app.post('/login', async (req, res) => {
   const userApi = req.app.get('userApi');
 
   try {
-    const login = await roomApi.areCredentialsValid({ roomId, password });
-    const usersInRoom = await userApi.get(roomId);
+    const room = await roomApi.get(roomId);
+    if (!room || !room.id || !!room.started) throw Error(0);
 
-    if (!login || usersInRoom.length === 8) throw Error(0);
+    const login = await roomApi.areCredentialsValid({ roomId, password });
+    const usersInRoom = await userApi.getFromRoom(roomId);
+
+    if (!login || Object.keys(usersInRoom || {}).length === 4) throw Error(0);
 
     res.json({ logged: true });
   } catch (error) {
