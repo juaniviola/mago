@@ -19,7 +19,7 @@ export default function (io, socket) {
     await User.set({ roomId, username: user, socketId: socket.id });
 
     io.to(socket.id).emit('username', user);
-    io.emit('user_connected', user);
+    socket.broadcast.emit('user_connected', user);
   });
 
   socket.on('start_match', async (roomId) => {
