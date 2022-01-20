@@ -27,7 +27,7 @@
     "sequelize": "^6.13.0",
     "shortid": "^2.2.16",
     "socket.io": "^4.4.1",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^4.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.16.8",
@@ -38,6 +38,7 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.4",
     "jest": "^27.4.7",
-    "regenerator-runtime": "^0.13.9"
+    "regenerator-runtime": "^0.13.9",
+    "socket.io-client": "^4.4.1"
   }
 }
