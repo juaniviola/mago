@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import LinkRoute from 'next/link';
-import { Container, Link, Main, Img, Buttons } from './styles/indexStyle';
+import { Container, Link, Main, Img, Buttons } from '../style/indexStyle';
 
 export default function Home(): JSX.Element {
   return (
