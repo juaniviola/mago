@@ -1,8 +1,24 @@
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
-import LinkRoute from 'next/link';
-import { Container, Link, Main, Img, Buttons } from '../style/indexStyle';
+import globalStyle from '../style/global';
+import { Container, Link, Main, Img, ButtonContainer, Input } from '../style/indexStyle';
 
 export default function Home(): JSX.Element {
+  const router = useRouter();
+  const [inputUsername, setInputUsername] = useState('');
+
+  const handleKeyPress = (event: any): void => {
+    if (event.key === 'Enter') handleSaveUsername();
+  };
+
+  const handleSaveUsername = (): void => {
+    if (!inputUsername) return alert('Type username');
+
+    sessionStorage.setItem('username', inputUsername);
+    router.push('/rooms');
+  };
+
   return (
     <Container>
       <Head>
@@ -13,27 +29,18 @@ export default function Home(): JSX.Element {
       <Main>
         <Img src="/joker.png" alt="joker" />
         <h1>Mago</h1>
-        <Buttons>
-          <LinkRoute href="/rooms">
-            <Link>Jugar</Link>
-          </LinkRoute>
-        </Buttons>
+        <Input
+          type="text"
+          placeholder="username"
+          onChange={(e: any) => setInputUsername(e.target.value)}
+          onKeyPress={handleKeyPress}
+        />
+        <ButtonContainer>
+          <Link onClick={handleSaveUsername}>Jugar</Link>
+        </ButtonContainer>
       </Main>
 
-      <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
-
-        * {
-          box-sizing: border-box;
-        }
-      `}</style>
+      <style jsx global>{globalStyle}</style>
     </Container>
   );
 }

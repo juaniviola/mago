@@ -18,23 +18,32 @@ export const Main = styled.div`
 
 export const Link = styled.a`
   text-decoration: none;
-  padding: 10% 20%;
+  padding: 5% 45%;
   border-radius: 5px;
-  background-color: #efefef;
-  color: black;
+  background-color: #0069ff;
+  color: white;
   font-weight: bold;
   font-size: 1.2rem;
 
   &:hover {
-    background-color: grey;
     cursor: pointer;
+    background-color: #6aa7ff;
   }
 `;
 
-export const Buttons = styled.div`
-  margin-top: 25%;
+export const ButtonContainer = styled.div`
+  margin-top: 15%;
 `;
 
 export const Img = styled.img`
   margin-top: -80%;
+`;
+
+export const Input = styled.input`
+  outline: none;
+  border: 1px solid #e5e8ed;
+  padding: 5%;
+  font-size: 1.2rem;
+  background-color: #f3f5f9;
+  border-radius: 8px;
 `;
