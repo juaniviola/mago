@@ -21,11 +21,14 @@ export default function Room(): JSX.Element {
 
     const getList = async (): Promise<void> => {
       const rooms: any = await getRoomList();
-      setRoomList([...rooms] || []);
+
+      if (!rooms || !rooms.data) return;
+
+      setRoomList([...rooms.data] || []);
     };
 
     getList();
-  });
+  }, []);
 
   const handleOpenModal = (type: string): void => {
     if (type === 'create') setTypeModal('create');
@@ -41,11 +44,11 @@ export default function Room(): JSX.Element {
       </Modal>
 
       <Button onClick={() => handleOpenModal('create')}>Create Room</Button>
-      <Button onClick={() => handleOpenModal('login')}>Join private Room</Button>
+      <Button onClick={() => handleOpenModal('login')}>Join Private Room</Button>
 
       {roomList.length === 0 ? <span>No rooms available</span> : null}
 
-      {roomList.forEach((room: any) => <ListComponent
+      {roomList.map((room: any) => <ListComponent
           roomId={room.id}
           users={room.users}
           key={room.id}

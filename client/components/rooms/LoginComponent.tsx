@@ -14,6 +14,9 @@ export default function Login(): JSX.Element {
 
   const handleSubmit = async (event: any): Promise<void> => {
     event.preventDefault();
+    const refRoomIdInput: any = document.getElementById('roomid');
+    const refPasswordInput: any = document.getElementById('password');
+
     try {
       if (!roomIdInput) return;
 
@@ -24,10 +27,10 @@ export default function Login(): JSX.Element {
       );
       setLoading(false);
 
-      if (!login || !login.logged) {
+      if (!login || !login.data || !login.data.logged) {
         alert('Invalid credentials');
-        setRoomIdInput('');
-        setPasswordInput('');
+        refRoomIdInput.value = '';
+        refPasswordInput.value = '';
         return;
       }
 
@@ -35,6 +38,9 @@ export default function Login(): JSX.Element {
     } catch (error) {
       alert('Error ocurred :(');
       setLoading(false);
+    } finally {
+      refRoomIdInput.value = '';
+      refPasswordInput.value = '';
     }
   };
 
@@ -44,10 +50,12 @@ export default function Login(): JSX.Element {
 
       <FormColumn action="" onSubmit={handleSubmit}>
         <Input
+          id="roomid"
           type="text"
           placeholder="Room Id"
           onChange={(e: any) => setRoomIdInput(e.target.value)} />
         <Input
+          id="password"
           type="password"
           placeholder="Password"
           onChange={(e: any) => setPasswordInput(e.target.value)} />

@@ -27,13 +27,14 @@ export default function Create(): JSX.Element {
       );
       setLoading(false);
 
-      if (!newRoom || !newRoom.id) throw Error('error');
+      if (!newRoom || !newRoom.data || !newRoom.data.id) throw Error('error');
 
-      router.push(`/game/${newRoom.id}`);
+      router.push(`/game/${newRoom.data.id}`);
     } catch (error) {
       alert('Error ocurred :(');
     } finally {
       setLoading(false);
+      setInputPassword('');
     }
   };
 
