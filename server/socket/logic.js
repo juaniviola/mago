@@ -41,7 +41,10 @@ export default function (io, socket) {
     const roomId = (socket.nsp.name).slice(1);
     const usersFromRoom = await database.User.getFromRoom(roomId);
 
-    if (Object.keys(usersFromRoom || {}).length === 1) {
+    const lengthUsers = Object.keys(JSON.parse(JSON.stringify(usersFromRoom))).length;
+
+    if (!lengthUsers) return;
+    if (lengthUsers === 1) {
       await database.Room.remove(roomId);
       await database.User.removeOwner(roomId);
       await database.User.remove({ roomId, username: Object.keys(usersFromRoom)[0] });
