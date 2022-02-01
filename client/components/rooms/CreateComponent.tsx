@@ -29,6 +29,7 @@ export default function Create(): JSX.Element {
 
       if (!newRoom || !newRoom.data || !newRoom.data.id) throw Error('error');
 
+      sessionStorage.setItem('isOwner', 'true');
       router.push(`/game/${newRoom.data.id}`);
     } catch (error) {
       alert('Error ocurred :(');
