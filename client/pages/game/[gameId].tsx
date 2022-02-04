@@ -21,7 +21,27 @@ export default function Game(): JSX.Element {
     turn: -1,
     quantity: 0,
     typeCard: null,
+    winner: '',
   });
+
+  const handleSetGameProps = (updatedProps: any): void => {
+    setGameProps((prevGamePropsState: any) => ({ ...prevGamePropsState, ...updatedProps }));
+  };
+
+  const handlePlayAgain = (): void => {
+    socket.emit('play_again');
+    setGameProps({
+      gameStarted: false,
+      users: [],
+      userCards: [],
+      stack: [],
+      cards: [],
+      turn: -1,
+      quantity: 0,
+      typeCard: null,
+      winner: '',
+    });
+  };
 
   useEffect(() => {
     setGameId(router.query.gameId);
@@ -34,14 +54,16 @@ export default function Game(): JSX.Element {
     setSocket(socketIo);
 
     socketIo.emit('new_player', { roomId: gameId, username });
-    startGameListeners(socketIo, setGameProps);
+    socketIo.on('new_game', () => handlePlayAgain());
+    startGameListeners(socketIo, handleSetGameProps);
   }, [gameId]);
 
   return (
     <div>
       {!gameProps.gameStarted ?
         <WaitingScreen roomId={gameId} socket={socket} /> :
-        <GameScreen gameProps={gameProps} setGameProps={setGameProps} socket={socket} />}
+        gameProps.winner ? <div><h1>Winner: {gameProps.winner}</h1><button onClick={handlePlayAgain}>Volver a jugar</button></div> :
+        <GameScreen gameProps={gameProps} setGameProps={handleSetGameProps} socket={socket} />}
     </div>
   );
 }
