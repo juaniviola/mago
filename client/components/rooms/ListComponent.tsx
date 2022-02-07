@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useRouter } from 'next/router';
 import { Container, Information, Button, H3, ButtonContainer } from './styles/ListStyle';
 
 export default function List({ roomId, users }): JSX.Element {
+  const router = useRouter();
+
+  const handleEnterRoom = (): void => {
+    router.push(`/game/${roomId}`);
+  };
+
   return (
     <Container>
       <Information>
@@ -10,7 +16,7 @@ export default function List({ roomId, users }): JSX.Element {
       </Information>
 
       <ButtonContainer>
-        <Button href="#">Enter</Button>
+        <Button href="#" onClick={handleEnterRoom}>Enter</Button>
       </ButtonContainer>
     </Container>
   );
