@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-import { NODE_ENV, REDIS_URL } from './config';
+import { NODE_ENV, REDIS_URL, PORT } from './config';
 import database from './db';
 import RoomRoute from './routes';
 
@@ -36,7 +36,7 @@ const connectDatabase = async () => {
 
 app.use('/room', RoomRoute);
 
-httpServer.listen(process.env.PORT || 8001, async () => {
+httpServer.listen(PORT, async () => {
   await connectDatabase();
   console.log('running...');
 });
