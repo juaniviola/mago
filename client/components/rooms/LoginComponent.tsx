@@ -2,9 +2,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Container, Input, Button, Span, FormColumn } from './styles/CreateStyles';
-
-// TODO: import from config
-const uri = 'http://localhost:8001';
+import { serverUrl } from '../../config';
 
 export default function Login(): JSX.Element {
   const router = useRouter();
@@ -22,7 +20,7 @@ export default function Login(): JSX.Element {
 
       setLoading(true);
       const login: any = await axios.post(
-        uri.concat('/room/login'),
+        serverUrl.concat('/room/login'),
         { roomId: roomIdInput, password: passwordInput },
       );
       setLoading(false);

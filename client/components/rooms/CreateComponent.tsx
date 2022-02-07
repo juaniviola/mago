@@ -2,9 +2,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Container, Input, Button, Span, Form } from './styles/CreateStyles';
-
-// TODO: import from config
-const uri = 'http://localhost:8001';
+import { serverUrl } from '../../config';
 
 export default function Create(): JSX.Element {
   const router = useRouter();
@@ -22,7 +20,7 @@ export default function Create(): JSX.Element {
 
       setLoading(true);
       const newRoom: any = await axios.post(
-        uri.concat('/room/create'),
+        serverUrl.concat('/room/create'),
         { username, password: inputPassword },
       );
       setLoading(false);

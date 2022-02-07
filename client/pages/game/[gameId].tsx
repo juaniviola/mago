@@ -4,9 +4,9 @@ import { io } from 'socket.io-client';
 import startGameListeners from '../../components/gameId/modules/logicListeners';
 import WaitingScreen from '../../components/gameId/waitingScreen';
 import GameScreen from '../../components/gameId/gameScreen';
+import { serverUrl } from '../../config';
 
 export default function Game(): JSX.Element {
-  const server = 'http://localhost:8001';
   const router = useRouter();
   const [gameId, setGameId]: [string, any] = useState('');
   const [socket, setSocket]: [any, any] = useState(null);
@@ -47,7 +47,7 @@ export default function Game(): JSX.Element {
     setGameId(router.query.gameId);
     const username = sessionStorage.getItem('username');
 
-    const socketIo = io(server.concat(`/${gameId}`), {
+    const socketIo = io(serverUrl.concat(`/${gameId}`), {
       transports: ['websocket'],
       forceNew: true,
     });

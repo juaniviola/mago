@@ -1,8 +1,6 @@
 import axios from 'axios';
-
-// TODO: import from config
-const uri = 'http://localhost:8001';
+import { serverUrl } from '../../config';
 
 export default function getRoomList(): Promise<void> {
-  return axios.get(uri.concat('/room/all'));
+  return axios.get(serverUrl.concat('/room/all'));
 }
