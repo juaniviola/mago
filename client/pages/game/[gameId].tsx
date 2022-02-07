@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { io } from 'socket.io-client';
-import startGameListeners from '../../components/gameId/logicListeners';
+import startGameListeners from '../../components/gameId/modules/logicListeners';
 import WaitingScreen from '../../components/gameId/waitingScreen';
 import GameScreen from '../../components/gameId/gameScreen';
 
