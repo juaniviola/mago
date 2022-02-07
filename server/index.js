@@ -2,9 +2,8 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import { Server } from 'socket.io';
-
+import { NODE_ENV, REDIS_URL } from './config';
 import database from './db';
-
 import RoomRoute from './routes';
 
 const app = express();
@@ -21,7 +20,7 @@ app.set('io', io);
 
 const connectDatabase = async () => {
   try {
-    const api = await database.connect();
+    const api = await database.connect({ force: NODE_ENV === 'dev', redisUrl: REDIS_URL });
     const { User, Room } = api;
 
     app.set('userApi', User);
