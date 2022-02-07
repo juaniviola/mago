@@ -22,9 +22,9 @@ export default function Room(): JSX.Element {
     const getList = async (): Promise<void> => {
       const rooms: any = await getRoomList();
 
-      if (!rooms || !rooms.data) return;
+      if (!rooms || !rooms.data?.data) return;
 
-      setRoomList([...rooms.data] || []);
+      setRoomList([...rooms.data.data] || []);
     };
 
     getList();
@@ -49,9 +49,9 @@ export default function Room(): JSX.Element {
       {roomList.length === 0 ? <span>No rooms available</span> : null}
 
       {roomList.map((room: any) => <ListComponent
-          roomId={room.id}
+          roomId={room.dataValues.id}
           users={room.users}
-          key={room.id}
+          key={room.dataValues.id}
         />
       )}
 
