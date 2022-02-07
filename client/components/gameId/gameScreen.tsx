@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Stack, Cards, Img, ContainerTakeCard } from './gameScreenStyle';
-import { playCard, takeCard, gameListeners } from './gameScreenModules';
+import { Stack, Cards, Img, ContainerTakeCard, Button } from './styles/gameScreenStyle';
+import { playCard, takeCard, gameListeners } from './modules/gameScreenModules';
 
 export default function gameScreen({
   gameProps: { users, userCards, stack, cards, turn, quantity, typeCard },
@@ -47,10 +47,10 @@ export default function gameScreen({
       </Stack>
 
       <ContainerTakeCard>
-        <button
+        <Button
           onClick={() => username !== users[turn] ? null : handleTakeCard()}
           disabled={username !== users[turn]}
-        >Take Card</button>
+        >Take Card</Button>
       </ContainerTakeCard>
 
       <Cards>
