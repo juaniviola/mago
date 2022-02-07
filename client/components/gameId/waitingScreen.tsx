@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Container } from './styles/waitingScreenStyle';
+import { Button } from './styles/gameScreenStyle';
 
 export default function waitingScreen({ socket, roomId }): JSX.Element {
   const [isOwner, setIsOwner]: [boolean, any] = useState(false);
@@ -15,9 +17,9 @@ export default function waitingScreen({ socket, roomId }): JSX.Element {
   });
 
   return (
-    <div>
+    <Container>
       <h3>Esperando jugadores...</h3>
-      {isOwner ? <button onClick={handleStart}>Comenzar</button> : null}
-    </div>
+      {isOwner ? <Button onClick={handleStart}>Comenzar</Button> : null}
+    </Container>
   );
 }
