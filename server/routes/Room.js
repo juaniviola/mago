@@ -5,11 +5,19 @@ const app = express.Router();
 
 app.get('/all', async (req, res) => {
   const roomApi = req.app.get('roomApi');
+  const userApi = req.app.get('userApi');
 
   try {
     const rooms = await roomApi.getAll();
 
-    return res.json(rooms);
+    const newRooms = await Promise.all(
+      rooms.map(async (room) => {
+        const users = await userApi.getFromRoom(room.id);
+        const newRoom = {...room, users: Object.keys(users).length || 0 };
+        return newRoom;
+      }));
+
+    return res.json({ data: newRooms });
   } catch (error) {
     res.sendStatus(500);
   }
